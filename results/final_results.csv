@@ -1,0 +1,8 @@
+benchmark,project,algorithm,environment,training_episodes,final_success_rate,average_reward,average_steps,collision_rate,eval_episodes,min_steps,max_steps,optimal_route_steps,optimal_route_length
+Trained Policy (Final),Campus Navigator,Q-Learning,10x10 campus grid,1000,100.0,170.0,18.0,0.0,100,18,18,18,19
+Experiment 1 (500 eps),Campus Navigator,Q-Learning,10x10 campus grid,500,100.0,170.0,18.0,0.0,100,18,18,18,19
+Experiment 2 (1000 eps),Campus Navigator,Q-Learning,10x10 campus grid,1000,100.0,170.0,18.0,0.0,100,18,18,18,19
+Experiment 3 (2000 eps),Campus Navigator,Q-Learning,10x10 campus grid,2000,100.0,172.0,18.0,0.0,100,18,18,18,19
+Profile A (Simple),Campus Navigator,Q-Learning,10x10 campus grid,800,100.0,83.0,18.0,0.0,100,18,18,18,19
+Profile B (Efficient),Campus Navigator,Q-Learning,10x10 campus grid,800,100.0,172.0,18.0,0.0,100,18,18,18,19
+Profile C (Safety-aware),Campus Navigator,Q-Learning,10x10 campus grid,800,100.0,167.0,18.0,0.0,100,18,18,18,19

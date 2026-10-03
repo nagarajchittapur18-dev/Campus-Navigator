@@ -1,0 +1,15 @@
+{
+  "grid_size": 10,
+  "training_episodes": 1000,
+  "learning_rate": 0.1,
+  "discount_factor": 0.9,
+  "initial_epsilon": 1.0,
+  "min_epsilon": 0.05,
+  "epsilon_decay": 0.995,
+  "max_steps_per_episode": 200,
+  "training_speed": "NORMAL",
+  "num_actions": 4,
+  "reward_safe_zone": 2.0,
+  "reward_crowded_zone": -2.0,
+  "reward_unsafe_zone": -10.0
+}

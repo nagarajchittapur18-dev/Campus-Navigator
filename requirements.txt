@@ -1,0 +1,16 @@
+# ==============================================================================
+# Campus Navigator: An Intelligent Path-Finding Game Using Q-Learning
+# Project Dependencies
+# ==============================================================================
+
+# Core numerical computing library for Q-table operations and state manipulation
+numpy>=1.24.0
+
+# 2D game engine used for the virtual campus visual interface and interactive game
+pygame>=2.5.0
+
+# Plotting library for training performance curves (Rewards, Steps, Epsilon decay)
+matplotlib>=3.7.0
+
+# Data analysis and structured tabular data storage (e.g., logging metrics to CSV)
+pandas>=2.0.0

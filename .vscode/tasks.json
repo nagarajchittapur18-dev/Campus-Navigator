@@ -1,0 +1,33 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run Campus Navigator",
+            "type": "shell",
+            "command": "python main.py",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Train AI (Headless)",
+            "type": "shell",
+            "command": "python main.py --train --episodes 600",
+            "problemMatcher": []
+        },
+        {
+            "label": "Evaluate Policy",
+            "type": "shell",
+            "command": "python main.py --eval",
+            "problemMatcher": []
+        },
+        {
+            "label": "Run All Tests",
+            "type": "shell",
+            "command": "python run_all_tests.py",
+            "problemMatcher": []
+        }
+    ]
+}

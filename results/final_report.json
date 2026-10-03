@@ -1,0 +1,343 @@
+{
+    "PROJECT": "Campus Navigator",
+    "ALGORITHM": "Q-Learning",
+    "ENVIRONMENT": "10x10 campus grid",
+    "TRAINING EPISODES": 1000,
+    "FINAL SUCCESS RATE": "100.0%",
+    "AVERAGE REWARD": 170.0,
+    "AVERAGE STEPS": 18.0,
+    "COLLISION RATE": 0.0,
+    "project": "Campus Navigator",
+    "algorithm": "Q-Learning",
+    "environment": "10x10 campus grid",
+    "training_episodes": 1000,
+    "final_success_rate": 100.0,
+    "average_reward": 170.0,
+    "average_steps": 18.0,
+    "collision_rate": 0.0,
+    "evaluation_episodes": 100,
+    "successful_evaluation_episodes": 100,
+    "min_steps": 18,
+    "max_steps": 18,
+    "optimal_route_steps": 18,
+    "optimal_route_length": 19,
+    "optimal_route_path": [
+        [
+            0,
+            0
+        ],
+        [
+            0,
+            1
+        ],
+        [
+            0,
+            2
+        ],
+        [
+            0,
+            3
+        ],
+        [
+            1,
+            3
+        ],
+        [
+            2,
+            3
+        ],
+        [
+            3,
+            3
+        ],
+        [
+            4,
+            3
+        ],
+        [
+            4,
+            4
+        ],
+        [
+            5,
+            4
+        ],
+        [
+            6,
+            4
+        ],
+        [
+            7,
+            4
+        ],
+        [
+            8,
+            4
+        ],
+        [
+            8,
+            5
+        ],
+        [
+            8,
+            6
+        ],
+        [
+            8,
+            7
+        ],
+        [
+            8,
+            8
+        ],
+        [
+            8,
+            9
+        ],
+        [
+            9,
+            9
+        ]
+    ],
+    "grid_dimensions": "10x10",
+    "start_position": [
+        0,
+        0
+    ],
+    "goal_position": [
+        9,
+        9
+    ],
+    "total_obstacles": 19,
+    "safe_zones": [
+        [
+            3,
+            2
+        ],
+        [
+            7,
+            3
+        ]
+    ],
+    "unsafe_zones": [
+        [
+            2,
+            5
+        ],
+        [
+            5,
+            6
+        ],
+        [
+            8,
+            7
+        ]
+    ],
+    "hyperparameters": {
+        "learning_rate": 0.1,
+        "discount_factor": 0.9,
+        "initial_epsilon": 1.0,
+        "min_epsilon": 0.05,
+        "epsilon_decay": 0.995,
+        "max_steps_per_episode": 200
+    },
+    "training_history_summary": {
+        "source_file": "C:\\Users\\Nagaraj\\Desktop\\Campus Navigator\\results\\training_results.csv",
+        "file_exists": true,
+        "total_episodes": 1000,
+        "training_success_rate": 97.9,
+        "training_avg_reward": 135.84,
+        "training_avg_steps": 31.37,
+        "training_collision_rate": 3.79,
+        "recent_100_avg_reward": 167.65,
+        "recent_100_avg_steps": 19.25,
+        "recent_100_success_rate": 100.0
+    },
+    "phase20_horizon_benchmarks": [
+        {
+            "experiment_name": "Experiment 1 (500 eps)",
+            "episodes": 500,
+            "max_steps": 200,
+            "learning_rate": 0.1,
+            "discount_factor": 0.9,
+            "final_epsilon": 0.0816,
+            "training_success_rate": 95.4,
+            "training_avg_reward": 99.69,
+            "training_avg_steps": 41.92,
+            "training_collision_rate": 7.48,
+            "total_training_collisions": 3742,
+            "successful_training_episodes": 477,
+            "recent_100_success_rate": 100.0,
+            "recent_100_avg_reward": 163.93,
+            "recent_100_avg_steps": 20.13,
+            "recent_100_collision_rate": 0.67,
+            "eval_episodes": 100,
+            "eval_success_rate": 100.0,
+            "eval_avg_reward": 170.0,
+            "eval_avg_steps": 18.0,
+            "eval_collision_rate": 0.0,
+            "eval_min_steps": 18,
+            "eval_max_steps": 18,
+            "eval_optimal_route_length": 19,
+            "best_episode": 394,
+            "best_reward": 187.0,
+            "non_zero_q_entries": 320,
+            "execution_time_seconds": 0.47
+        },
+        {
+            "experiment_name": "Experiment 2 (1000 eps)",
+            "episodes": 1000,
+            "max_steps": 200,
+            "learning_rate": 0.1,
+            "discount_factor": 0.9,
+            "final_epsilon": 0.0067,
+            "training_success_rate": 96.9,
+            "training_avg_reward": 132.34,
+            "training_avg_steps": 32.18,
+            "training_collision_rate": 4.07,
+            "total_training_collisions": 4071,
+            "successful_training_episodes": 969,
+            "recent_100_success_rate": 100.0,
+            "recent_100_avg_reward": 168.2,
+            "recent_100_avg_steps": 18.86,
+            "recent_100_collision_rate": 0.24,
+            "eval_episodes": 100,
+            "eval_success_rate": 100.0,
+            "eval_avg_reward": 170.0,
+            "eval_avg_steps": 18.0,
+            "eval_collision_rate": 0.0,
+            "eval_min_steps": 18,
+            "eval_max_steps": 18,
+            "eval_optimal_route_length": 19,
+            "best_episode": 567,
+            "best_reward": 182.0,
+            "non_zero_q_entries": 320,
+            "execution_time_seconds": 0.69
+        },
+        {
+            "experiment_name": "Experiment 3 (2000 eps)",
+            "episodes": 2000,
+            "max_steps": 200,
+            "learning_rate": 0.1,
+            "discount_factor": 0.9,
+            "final_epsilon": 0.0,
+            "training_success_rate": 98.65,
+            "training_avg_reward": 152.46,
+            "training_avg_steps": 25.26,
+            "training_collision_rate": 2.13,
+            "total_training_collisions": 4269,
+            "successful_training_episodes": 1973,
+            "recent_100_success_rate": 100.0,
+            "recent_100_avg_reward": 170.75,
+            "recent_100_avg_steps": 19.08,
+            "recent_100_collision_rate": 0.2,
+            "eval_episodes": 100,
+            "eval_success_rate": 100.0,
+            "eval_avg_reward": 172.0,
+            "eval_avg_steps": 18.0,
+            "eval_collision_rate": 0.0,
+            "eval_min_steps": 18,
+            "eval_max_steps": 18,
+            "eval_optimal_route_length": 19,
+            "best_episode": 253,
+            "best_reward": 186.0,
+            "non_zero_q_entries": 320,
+            "execution_time_seconds": 1.15
+        }
+    ],
+    "phase21_reward_profile_benchmarks": [
+        {
+            "profile_name": "Profile A (Simple)",
+            "description": "Simple navigation: Goal=+100, Step=-1, Obstacle=-10 (No distance shaping)",
+            "episodes": 800,
+            "eval_episodes": 100,
+            "reward_goal": 100.0,
+            "reward_step": -1.0,
+            "reward_obstacle": -10.0,
+            "reward_closer": NaN,
+            "reward_farther": NaN,
+            "reward_unsafe": -1.0,
+            "use_distance_shaping": false,
+            "training_success_rate": 96.62,
+            "training_avg_reward": 14.28,
+            "training_avg_steps": 35.37,
+            "training_collision_rate": 5.27,
+            "training_unsafe_visits_rate": 1.45,
+            "total_training_collisions": 4214,
+            "total_training_unsafe_visits": 1158,
+            "recent_100_avg_reward": 79.44,
+            "recent_100_avg_steps": 19.04,
+            "recent_100_success_rate": 100.0,
+            "eval_success_rate": 100.0,
+            "eval_avg_reward": 83.0,
+            "eval_avg_steps": 18.0,
+            "eval_collision_rate": 0.0,
+            "eval_unsafe_visits_rate": 1.0,
+            "eval_route_length": 19,
+            "execution_time_seconds": 0.96
+        },
+        {
+            "profile_name": "Profile B (Efficient)",
+            "description": "Efficient navigation: Goal=+100, Closer=+5, Farther=-3, Step=-1, Obstacle=-10",
+            "episodes": 800,
+            "eval_episodes": 100,
+            "reward_goal": 100.0,
+            "reward_step": -1.0,
+            "reward_obstacle": -10.0,
+            "reward_closer": 5.0,
+            "reward_farther": -3.0,
+            "reward_unsafe": -10.0,
+            "use_distance_shaping": true,
+            "training_success_rate": 96.75,
+            "training_avg_reward": 126.17,
+            "training_avg_steps": 34.75,
+            "training_collision_rate": 5.0,
+            "training_unsafe_visits_rate": 1.39,
+            "total_training_collisions": 4001,
+            "total_training_unsafe_visits": 1115,
+            "recent_100_avg_reward": 170.39,
+            "recent_100_avg_steps": 19.07,
+            "recent_100_success_rate": 100.0,
+            "eval_success_rate": 100.0,
+            "eval_avg_reward": 172.0,
+            "eval_avg_steps": 18.0,
+            "eval_collision_rate": 0.0,
+            "eval_unsafe_visits_rate": 1.0,
+            "eval_route_length": 19,
+            "execution_time_seconds": 0.93
+        },
+        {
+            "profile_name": "Profile C (Safety-aware)",
+            "description": "Safety-aware navigation: Goal=+100, Closer=+5, Unsafe=-15, Obstacle=-20, Step=-1",
+            "episodes": 800,
+            "eval_episodes": 100,
+            "reward_goal": 100.0,
+            "reward_step": -1.0,
+            "reward_obstacle": -20.0,
+            "reward_closer": 5.0,
+            "reward_farther": -3.0,
+            "reward_unsafe": -15.0,
+            "use_distance_shaping": true,
+            "training_success_rate": 96.5,
+            "training_avg_reward": 69.9,
+            "training_avg_steps": 35.01,
+            "training_collision_rate": 5.0,
+            "training_unsafe_visits_rate": 1.36,
+            "total_training_collisions": 3999,
+            "total_training_unsafe_visits": 1089,
+            "recent_100_avg_reward": 163.9,
+            "recent_100_avg_steps": 19.02,
+            "recent_100_success_rate": 100.0,
+            "eval_success_rate": 100.0,
+            "eval_avg_reward": 167.0,
+            "eval_avg_steps": 18.0,
+            "eval_collision_rate": 0.0,
+            "eval_unsafe_visits_rate": 1.0,
+            "eval_route_length": 19,
+            "execution_time_seconds": 0.98
+        }
+    ],
+    "timestamp": "2026-10-03T19:25:58.955464",
+    "model_file": "C:\\Users\\Nagaraj\\Desktop\\Campus Navigator\\models\\q_table.npy",
+    "report_generator_version": "2.2.0 (Phase 22 Final)"
+}
