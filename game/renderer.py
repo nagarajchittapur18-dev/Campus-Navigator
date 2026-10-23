@@ -1340,8 +1340,9 @@ class CampusRenderer:
         pygame.draw.line(self.screen, (252, 211, 77), (card_x, card_y + 75), (card_x + card_w, card_y + 75), 2)
 
         # Header Titles: MISSION COMPLETE
+        dest_name = stats.get("destination_name", "Central Library")
         t_title = self.font_title.render("MISSION COMPLETE", True, (146, 64, 14))
-        t_sub = self.font_subtitle.render("Central Library Reached (9, 9) — Measured Performance Summary", True, (180, 83, 9))
+        t_sub = self.font_subtitle.render(f"{dest_name} Reached — Measured Performance Summary", True, (180, 83, 9))
         self.screen.blit(t_title, (config.SCREEN_WIDTH // 2 - t_title.get_width() // 2, card_y + 14))
         self.screen.blit(t_sub, (config.SCREEN_WIDTH // 2 - t_sub.get_width() // 2, card_y + 46))
 
@@ -1352,9 +1353,15 @@ class CampusRenderer:
         h_collisions = stats.get("collisions", 0)
         route_len = stats.get("route_length", h_steps + 1)
 
-        # AI Benchmark Data
-        ai_steps = 18
-        ai_reward = 170.0
+        # AI Benchmark Data (dynamic per destination)
+        dest_benchmarks = {
+            "Library": (18, 172.0),
+            "Main Block": (13, 160.0),
+            "Computer Lab": (7, 135.0),
+            "Cafeteria": (5, 125.0),
+            "Sports Ground": (13, 160.0),
+        }
+        ai_steps, ai_reward = dest_benchmarks.get(dest_name, (18, 170.0))
 
         # 3 Key Stat Cards (Prominently displaying Steps, Time, Reward)
         stat_cards = [
@@ -1628,6 +1635,8 @@ class CampusRenderer:
         human_data: Dict,
         ai_data: Dict,
         buttons: List[Button],
+        start_name: str = "Main Gate",
+        dest_name: str = "Central Library",
     ) -> None:
         """
         Render a clean, objective side-by-side comparison table between Human and AI.
@@ -1637,11 +1646,8 @@ class CampusRenderer:
 
         # Header Titles
         title_surf = self.font_title.render("Human vs AI Performance Comparison", True, (15, 23, 42))
-        sub_surf = self.font_subtitle.render(
-            "Empirical Measurements on Identical 10x10 Campus Environment (Gate (0,0) -> Library (9,9))",
-            True,
-            (100, 116, 139),
-        )
+        sub_text = f"Empirical Measurements on Identical 10x10 Campus Environment ({start_name} -> {dest_name})"
+        sub_surf = self.font_subtitle.render(sub_text, True, (100, 116, 139))
         self.screen.blit(title_surf, (config.SCREEN_WIDTH // 2 - title_surf.get_width() // 2, 28))
         self.screen.blit(sub_surf, (config.SCREEN_WIDTH // 2 - sub_surf.get_width() // 2, 60))
 
@@ -1721,7 +1727,7 @@ class CampusRenderer:
 
         note_title = self.font_small.render("METHODOLOGY & OBJECTIVE OBSERVATION:", True, (71, 85, 105))
         note_line1 = self.font_subtitle.render(
-            "• Both agents operated on the deterministic 10x10 campus with 18 building obstacles and identical rewards.",
+            "• Both agents operated on the deterministic 10x10 campus with building obstacles and identical rewards.",
             True,
             (51, 65, 85),
         )
@@ -1740,6 +1746,115 @@ class CampusRenderer:
             btn.update(mouse_pos)
             btn.draw(self.screen)
 
+        pygame.display.flip()
+
+    def draw_comparison_map_screen(
+        self,
+        env: CampusEnvironment,
+        stats: Dict,
+        human_path: List[Tuple[int, int]],
+        ai_path: List[Tuple[int, int]],
+        back_btn: Button,
+        replay_btn: Button,
+        play_btn: Optional[Button] = None,
+    ) -> None:
+        """Render side-by-side comparison route visualization on the campus grid."""
+        self.screen.fill(config.COLOR_BACKGROUND)
+
+        start_name = stats.get("start_name", "Main Gate")
+        dest_name = stats.get("destination_name", "Central Library")
+
+        # Header Titles
+        title_surf = self.font_title.render("Campus Navigator: Visual Route Comparison", True, (15, 23, 42))
+        sub_surf = self.font_subtitle.render(
+            f"Comparing Paths: Human ({len(human_path)} pts) vs Q-Learning AI ({len(ai_path)} pts) — {start_name} to {dest_name}",
+            True,
+            (100, 116, 139),
+        )
+        self.screen.blit(title_surf, (self.grid_x, 16))
+        self.screen.blit(sub_surf, (self.grid_x, 48))
+
+        # Draw Grid
+        self.draw_grid(env, stats)
+
+        # Draw Dual Paths (Human: Cyan, AI: Purple)
+        self.draw_dual_route_paths(human_path, ai_path)
+
+        # Draw Agent at goal
+        self.draw_agent()
+
+        # Draw Right Telemetry / Metric Comparison Panel
+        panel_rect = pygame.Rect(self.panel_x, self.panel_y, self.panel_width, self.panel_height)
+        pygame.draw.rect(self.screen, config.COLOR_PANEL_BG, panel_rect, border_radius=12)
+        pygame.draw.rect(self.screen, (51, 65, 85), panel_rect, 2, border_radius=12)
+
+        header_surf = self.font_panel_title.render("Comparison Metrics", True, (216, 180, 254))
+        self.screen.blit(header_surf, (self.panel_x + 20, self.panel_y + 16))
+
+        sub_header = self.font_subtitle.render(f"Route: {start_name} -> {dest_name}", True, config.COLOR_TEXT_MUTED)
+        self.screen.blit(sub_header, (self.panel_x + 20, self.panel_y + 40))
+
+        # Status Pill
+        self.draw_status_indicator(self.panel_x + self.panel_width - 150, self.panel_y + 14, "GOAL", "EVAL COMPLETED")
+
+        pygame.draw.line(
+            self.screen,
+            (51, 65, 85),
+            (self.panel_x + 20, self.panel_y + 60),
+            (self.panel_x + self.panel_width - 20, self.panel_y + 60),
+            1,
+        )
+
+        h_steps = stats.get("human_steps", 0)
+        ai_steps = stats.get("steps", 0)
+        h_rew = float(stats.get("human_reward", 0.0))
+        ai_rew = float(stats.get("reward", 0.0))
+        h_col = stats.get("human_collisions", 0)
+        ai_col = stats.get("ai_collisions", 0)
+        h_time = stats.get("human_time_str", "N/A")
+        ai_time = stats.get("time_str", "N/A")
+
+        metric_cards = [
+            ("Human Steps Taken", f"{h_steps} steps", (56, 189, 248), True),
+            ("AI Optimal Steps", f"{ai_steps} steps", (216, 180, 254), True),
+            ("Human Total Reward", f"{h_rew:+.1f}", config.COLOR_SUCCESS if h_rew >= 0 else config.COLOR_DANGER, True),
+            ("AI Total Reward", f"{ai_rew:+.1f}", config.COLOR_SUCCESS if ai_rew >= 0 else config.COLOR_DANGER, True),
+            ("Human Collisions", f"{h_col} hits", config.COLOR_DANGER if h_col > 0 else config.COLOR_SUCCESS, True),
+            ("AI Collisions", f"{ai_col} hits", config.COLOR_SUCCESS, True),
+            ("Human Duration", f"{h_time}", (250, 204, 21), True),
+            ("AI Duration", f"{ai_time}", (250, 204, 21), True),
+        ]
+
+        curr_y = self.panel_y + 70
+        card_h = 36
+        card_w = self.panel_width - 40
+
+        for label, val, val_col, is_mono in metric_cards:
+            card_rect = pygame.Rect(self.panel_x + 20, curr_y, card_w, card_h)
+            pygame.draw.rect(self.screen, config.COLOR_PANEL_CARD, card_rect, border_radius=6)
+
+            lbl_surf = self.font_label.render(label, True, config.COLOR_TEXT_MUTED)
+            val_font = self.font_mono_val if is_mono else self.font_val
+            val_surf = val_font.render(val, True, val_col)
+
+            self.screen.blit(lbl_surf, (card_rect.x + 12, card_rect.y + 9))
+            self.screen.blit(val_surf, (card_rect.right - val_surf.get_width() - 12, card_rect.y + 9))
+
+            curr_y += card_h + 6
+
+        # Draw Action Buttons in panel
+        mouse_pos = pygame.mouse.get_pos()
+        back_btn.update(mouse_pos)
+        back_btn.draw(self.screen)
+
+        replay_btn.update(mouse_pos)
+        replay_btn.draw(self.screen)
+
+        if play_btn:
+            play_btn.update(mouse_pos)
+            play_btn.draw(self.screen)
+
+        self.draw_legend(env)
         pygame.display.flip()
 
     # --------------------------------------------------------------------------

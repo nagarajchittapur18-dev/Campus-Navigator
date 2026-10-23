@@ -123,6 +123,12 @@ class CampusNavigatorGame:
         self.status_message: str = "Ready"
         self.goal_reached: bool = False
         self.paused: bool = False
+        self.human_path: List[Tuple[int, int]] = []
+        self.human_elapsed_time: float = 0.0
+        self.human_collisions: int = 0
+        self.human_hazards: int = 0
+        self.last_step_reward: float = 0.0
+        self.human_start_time: float = 0.0
 
         # ----------------------------------------------------------------------
         # Phase 8 & 14: AI Training Mode State Variables
@@ -373,10 +379,10 @@ class CampusNavigatorGame:
             font=self.renderer.font_btn,
         )
 
-        # Phase 11: Comparison Summary Screen Buttons (3 Buttons)
-        btn_w_comp = 210
-        gap_comp = 25
-        start_x_comp = 210
+        # Phase 11: Comparison Summary Screen Buttons (4 Buttons)
+        btn_w_comp = 180
+        gap_comp = 16
+        start_x_comp = (config.SCREEN_WIDTH - (btn_w_comp * 4 + gap_comp * 3)) // 2
         btn_y_comp = 575
         btn_h_comp = 44
 
@@ -393,6 +399,56 @@ class CampusNavigatorGame:
         )
         self.btn_comp_replay_ai = Button(
             rect=pygame.Rect(start_x_comp + btn_w_comp + gap_comp, btn_y_comp, btn_w_comp, btn_h_comp),
+            text="Replay AI",
+            shortcut_key="2",
+            font=self.renderer.font_btn,
+            base_color=(243, 232, 255),
+            hover_color=(233, 213, 255),
+            text_color=(126, 34, 206),
+            hover_text_color=(107, 33, 168),
+            border_color=(216, 180, 254),
+        )
+        self.btn_comp_view_map = Button(
+            rect=pygame.Rect(start_x_comp + (btn_w_comp + gap_comp) * 2, btn_y_comp, btn_w_comp, btn_h_comp),
+            text="View Routes",
+            shortcut_key="3",
+            font=self.renderer.font_btn,
+            base_color=(239, 246, 255),
+            hover_color=(219, 234, 254),
+            text_color=(29, 78, 216),
+            hover_text_color=(30, 64, 175),
+            border_color=(191, 219, 254),
+        )
+        self.btn_comp_menu = Button(
+            rect=pygame.Rect(start_x_comp + (btn_w_comp + gap_comp) * 3, btn_y_comp, btn_w_comp, btn_h_comp),
+            text="Back to Menu",
+            shortcut_key="ESC",
+            font=self.renderer.font_btn,
+        )
+        self.comparison_summary_buttons = [
+            self.btn_comp_play_again,
+            self.btn_comp_replay_ai,
+            self.btn_comp_view_map,
+            self.btn_comp_menu,
+        ]
+        self.comparison_view_mode: str = "TABLE"
+
+        # Comparison Map View action buttons (positioned in HUD panel)
+        map_btn_w = self.renderer.panel_width - 40
+        map_btn_y = self.renderer.panel_y + self.renderer.panel_height - 96
+        self.btn_map_back_table = Button(
+            rect=pygame.Rect(self.renderer.panel_x + 20, map_btn_y, map_btn_w, 40),
+            text="Back to Table",
+            shortcut_key="ESC",
+            font=self.renderer.font_btn,
+            base_color=(240, 253, 244),
+            hover_color=(220, 252, 231),
+            text_color=(22, 101, 52),
+            hover_text_color=(21, 128, 61),
+            border_color=(187, 247, 208),
+        )
+        self.btn_map_replay = Button(
+            rect=pygame.Rect(self.renderer.panel_x + 20, map_btn_y + 46, map_btn_w, 40),
             text="Replay AI Run",
             shortcut_key="2",
             font=self.renderer.font_btn,
@@ -402,17 +458,6 @@ class CampusNavigatorGame:
             hover_text_color=(107, 33, 168),
             border_color=(216, 180, 254),
         )
-        self.btn_comp_menu = Button(
-            rect=pygame.Rect(start_x_comp + (btn_w_comp + gap_comp) * 2, btn_y_comp, btn_w_comp, btn_h_comp),
-            text="Back to Menu",
-            shortcut_key="ESC",
-            font=self.renderer.font_btn,
-        )
-        self.comparison_summary_buttons = [
-            self.btn_comp_play_again,
-            self.btn_comp_replay_ai,
-            self.btn_comp_menu,
-        ]
 
     def _init_route_modal_buttons(self) -> None:
         """Initialize interactive buttons for the Route & Destination Selection Modal."""
@@ -778,9 +823,25 @@ class CampusNavigatorGame:
         print("\n[+] Finalizing training session...")
         df = pd.DataFrame(self.train_records)
 
-        # 1. Save Q-table
-        saved_model = self.agent.save_model(config.Q_TABLE_SAVE_PATH)
-        print(f"[+] Q-Table saved to: {saved_model}")
+        # 1. Save Q-table (Safeguard: avoid overwriting existing trained model with truncated short session)
+        total_eps = len(df)
+        should_save_model = completed or total_eps >= 50
+        if not should_save_model:
+            if not os.path.exists(config.Q_TABLE_SAVE_PATH) or os.path.getsize(config.Q_TABLE_SAVE_PATH) == 0:
+                should_save_model = True
+            else:
+                try:
+                    existing_q = np.load(config.Q_TABLE_SAVE_PATH)
+                    if np.count_nonzero(self.agent.q_table) >= np.count_nonzero(existing_q):
+                        should_save_model = True
+                except Exception:
+                    should_save_model = True
+
+        if should_save_model:
+            saved_model = self.agent.save_model(config.Q_TABLE_SAVE_PATH)
+            print(f"[+] Q-Table saved to: {saved_model}")
+        else:
+            print(f"[!] Session ended early ({total_eps} eps). Preserving existing fully-trained Q-table.")
 
         # 2. Save CSV Metrics
         if len(df) > 0:
@@ -1283,7 +1344,7 @@ class CampusNavigatorGame:
                     if event.key in (pygame.K_r, pygame.K_1):
                         self._start_human_mode()
                         return
-                    elif event.key in (pygame.K_w, pygame.K_2, pygame.K_SPACE, pygame.K_RETURN):
+                    elif event.key in (pygame.K_c, pygame.K_w, pygame.K_2, pygame.K_SPACE, pygame.K_RETURN):
                         self._start_ai_comparison()
                         return
                     elif event.key in (pygame.K_ESCAPE, pygame.K_m, pygame.K_3):
@@ -1424,7 +1485,7 @@ class CampusNavigatorGame:
             return
 
         # Load Q-table, synchronize destination policy, and set greedy exploitation (epsilon = 0.0)
-        loaded = self.agent.load_model(config.Q_TABLE_SAVE_PATH)
+        loaded = self.agent.load_model()
         if not loaded:
             self.no_model_message = "Trained model file could not be loaded."
             self.no_model_detail = getattr(
@@ -1438,6 +1499,11 @@ class CampusNavigatorGame:
             self.current_state = "NO_MODEL"
             return
 
+        # Ensure start and destination coordinates are synchronized
+        start_coord = config.START_LOCATIONS.get(self.selected_start_name, config.START_POSITION)
+        dest_coord = config.DESTINATIONS.get(self.selected_dest_name, config.GOAL_POSITION)
+        self.env.set_start(start_coord)
+        self.env.set_destination(dest_coord)
         self.agent.set_destination(self.selected_dest_name)
         self.agent.epsilon = 0.0
 
@@ -1451,15 +1517,24 @@ class CampusNavigatorGame:
                 "success": "Yes" if self.goal_reached else "No",
                 "collisions": self.human_collisions,
             }
-        elif not self.comparison_human_data:
-            self.comparison_human_data = {
-                "steps": 32,
-                "reward": 61.0,
-                "time": "14.2s",
-                "route_length": 33,
-                "success": "Yes",
-                "collisions": 1,
-            }
+        else:
+            if not self.comparison_human_data:
+                self.comparison_human_data = {
+                    "steps": 32,
+                    "reward": 61.0,
+                    "time": "14.2s",
+                    "route_length": 33,
+                    "success": "Yes",
+                    "collisions": 1,
+                }
+            # Provide realistic baseline human trajectory if none recorded yet
+            if not self.human_path or len(self.human_path) < 2:
+                self.human_path = [
+                    (0, 0), (0, 1), (0, 2), (0, 3), (1, 3), (1, 4), (1, 3),
+                    (2, 3), (2, 4), (3, 4), (3, 3), (4, 3), (4, 2), (4, 3),
+                    (5, 3), (5, 4), (6, 4), (6, 5), (6, 6), (7, 6), (7, 5),
+                    (7, 4), (8, 4), (8, 5), (8, 6), (8, 7), (8, 8), (8, 9), (9, 9)
+                ]
 
         # Reset identical campus environment for AI evaluation run
         self.env.reset()
@@ -1476,6 +1551,8 @@ class CampusNavigatorGame:
         self.last_collision_cell = None
         self.last_collision_msg = ""
         self.goal_arrival_time = 0
+        self.comparison_view_mode = "TABLE"
+        self.btn_comp_run_skip.text = "Skip to Table"
 
         self.current_state = "AI_COMPARISON_RUN"
 
@@ -1510,12 +1587,13 @@ class CampusNavigatorGame:
         if done or is_goal or self.comparison_ai_steps >= config.MAX_STEPS_PER_EPISODE:
             self.comparison_ai_done = True
             self.comparison_ai_elapsed_time = time.time() - self.comparison_ai_start_time
-            self._finalize_ai_comparison()
+            self.btn_comp_run_skip.text = "View Comparison Table"
 
     def _fast_forward_ai_comparison(self) -> None:
         """Instantly simulate the AI route to the end and transition to comparison table."""
         while not self.comparison_ai_done:
             self._step_ai_comparison()
+        self._finalize_ai_comparison()
 
     def _finalize_ai_comparison(self) -> None:
         """Finalize AI evaluation metrics and transition to the side-by-side table."""
@@ -1527,6 +1605,7 @@ class CampusNavigatorGame:
             "success": "Yes" if self.env.agent_pos == self.env.goal_pos else "No",
             "collisions": self.comparison_ai_collisions,
         }
+        self.comparison_view_mode = "TABLE"
         self.current_state = "COMPARISON_SUMMARY"
 
     def _handle_ai_comparison_run_state(self) -> None:
@@ -1543,24 +1622,35 @@ class CampusNavigatorGame:
                     self.current_state = "MENU"
                     return
                 elif event.key in (pygame.K_SPACE, pygame.K_RETURN, pygame.K_s):
-                    self._fast_forward_ai_comparison()
+                    if self.comparison_ai_done:
+                        self._finalize_ai_comparison()
+                    else:
+                        self._fast_forward_ai_comparison()
                     return
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if self.btn_comp_run_skip.is_clicked(mouse_pos, event):
-                    self._fast_forward_ai_comparison()
+                    if self.comparison_ai_done:
+                        self._finalize_ai_comparison()
+                    else:
+                        self._fast_forward_ai_comparison()
                     return
                 elif self.btn_comp_run_menu.is_clicked(mouse_pos, event):
                     self.current_state = "MENU"
                     return
 
         # Advance AI step based on timer
+        now = pygame.time.get_ticks()
         if not self.comparison_ai_done:
-            now = pygame.time.get_ticks()
             self.comparison_ai_elapsed_time = time.time() - self.comparison_ai_start_time
             if now - self.comparison_ai_last_step_time >= self.comparison_ai_delay_ms:
                 self._step_ai_comparison()
                 self.comparison_ai_last_step_time = now
+        else:
+            # When done, allow arrival frame to show, then auto-advance after 1.4s
+            if self.goal_arrival_time > 0 and (now - self.goal_arrival_time >= 1400):
+                self._finalize_ai_comparison()
+                return
 
         # If step finalized and transitioned to summary, exit handler
         if self.current_state != "AI_COMPARISON_RUN":
@@ -1581,6 +1671,8 @@ class CampusNavigatorGame:
             "last_collision_cell": self.last_collision_cell,
             "last_collision_msg": self.last_collision_msg,
             "goal_arrival_time": self.goal_arrival_time,
+            "start_name": self.selected_start_name,
+            "destination_name": self.selected_dest_name,
         }
 
         self.renderer.render_ai_comparison_run(
@@ -1603,32 +1695,85 @@ class CampusNavigatorGame:
                 return
 
             if event.type == pygame.KEYDOWN:
-                if event.key in (pygame.K_1, pygame.K_p, pygame.K_r):
-                    self._start_human_mode()
-                    return
-                elif event.key in (pygame.K_2, pygame.K_a):
-                    self._start_ai_comparison()
-                    return
-                elif event.key in (pygame.K_ESCAPE, pygame.K_m, pygame.K_3, pygame.K_SPACE):
-                    self.current_state = "MENU"
-                    return
+                if self.comparison_view_mode == "MAP":
+                    if event.key in (pygame.K_ESCAPE, pygame.K_m, pygame.K_t, pygame.K_3, pygame.K_v, pygame.K_SPACE, pygame.K_RETURN):
+                        self.comparison_view_mode = "TABLE"
+                        return
+                    elif event.key in (pygame.K_2, pygame.K_a, pygame.K_r):
+                        self._start_ai_comparison()
+                        return
+                    elif event.key in (pygame.K_1, pygame.K_p):
+                        self._start_human_mode()
+                        return
+                else:
+                    if event.key in (pygame.K_1, pygame.K_p, pygame.K_r):
+                        self._start_human_mode()
+                        return
+                    elif event.key in (pygame.K_2, pygame.K_a):
+                        self._start_ai_comparison()
+                        return
+                    elif event.key in (pygame.K_3, pygame.K_v, pygame.K_m, pygame.K_SPACE):
+                        self.comparison_view_mode = "MAP"
+                        return
+                    elif event.key in (pygame.K_ESCAPE, pygame.K_4):
+                        self.current_state = "MENU"
+                        return
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                if self.btn_comp_play_again.is_clicked(mouse_pos, event):
-                    self._start_human_mode()
-                    return
-                elif self.btn_comp_replay_ai.is_clicked(mouse_pos, event):
-                    self._start_ai_comparison()
-                    return
-                elif self.btn_comp_menu.is_clicked(mouse_pos, event):
-                    self.current_state = "MENU"
-                    return
+                if self.comparison_view_mode == "MAP":
+                    if self.btn_map_back_table.is_clicked(mouse_pos, event):
+                        self.comparison_view_mode = "TABLE"
+                        return
+                    elif self.btn_map_replay.is_clicked(mouse_pos, event):
+                        self._start_ai_comparison()
+                        return
+                else:
+                    if self.btn_comp_play_again.is_clicked(mouse_pos, event):
+                        self._start_human_mode()
+                        return
+                    elif self.btn_comp_replay_ai.is_clicked(mouse_pos, event):
+                        self._start_ai_comparison()
+                        return
+                    elif self.btn_comp_view_map.is_clicked(mouse_pos, event):
+                        self.comparison_view_mode = "MAP"
+                        return
+                    elif self.btn_comp_menu.is_clicked(mouse_pos, event):
+                        self.current_state = "MENU"
+                        return
 
-        self.renderer.draw_comparison_screen(
-            self.comparison_human_data,
-            self.comparison_ai_data,
-            self.comparison_summary_buttons,
-        )
+        if self.comparison_view_mode == "MAP":
+            stats = {
+                "current_state": self.env.agent_pos,
+                "action": "Completed",
+                "reward": self.comparison_ai_reward,
+                "steps": self.comparison_ai_steps,
+                "human_steps": self.comparison_human_data.get("steps", 0),
+                "human_reward": self.comparison_human_data.get("reward", 0.0),
+                "human_collisions": self.comparison_human_data.get("collisions", 0),
+                "ai_collisions": self.comparison_ai_collisions,
+                "time_str": self.comparison_ai_data.get("time", "0.0s"),
+                "human_time_str": self.comparison_human_data.get("time", "0.0s"),
+                "distance": 0,
+                "goal_reached": True,
+                "start_name": self.selected_start_name,
+                "destination_name": self.selected_dest_name,
+            }
+            self.renderer.draw_comparison_map_screen(
+                self.env,
+                stats,
+                self.human_path,
+                self.comparison_ai_path,
+                self.btn_map_back_table,
+                self.btn_map_replay,
+            )
+        else:
+            self.renderer.draw_comparison_screen(
+                self.comparison_human_data,
+                self.comparison_ai_data,
+                self.comparison_summary_buttons,
+                start_name=self.selected_start_name,
+                dest_name=self.selected_dest_name,
+            )
         self.clock.tick(config.FPS)
 
 
