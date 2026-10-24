@@ -15,6 +15,18 @@ license: mit
 > **Experiential Learning & Academic Demonstration Project**  
 > *Autonomous Spatial Navigation via Tabular Reinforcement Learning, Goal-Conditioned Markov Decision Processes, and 2D Interactive Simulation*
 
+[![Live Demo](https://img.shields.io/badge/%F0%9F%8C%90%20Live%20Demo-Hugging%20Face%20Spaces-blue?style=for-the-badge&logo=huggingface)](https://huggingface.co/spaces/nagarajchittapur/campus-navigator)
+[![GitHub Repository](https://img.shields.io/badge/GitHub-Repository-black?style=for-the-badge&logo=github)](https://github.com/nagarajchittapur18-dev/Campus-Navigator-RL-)
+
+---
+
+### 🌐 Live Interactive Demonstration (Web & Mobile)
+Experience the autonomous navigation and Q-learning pathfinder live in your web browser:  
+👉 **[https://huggingface.co/spaces/nagarajchittapur/campus-navigator](https://huggingface.co/spaces/nagarajchittapur/campus-navigator)**  
+*(Instant access for Android, iPhone, iPad, macOS, and Windows without installing any dependencies!)*
+
+---
+
 [![Python Version](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Pygame](https://img.shields.io/badge/GUI-Pygame%202.6.1-orange.svg)](https://www.pygame.org/)

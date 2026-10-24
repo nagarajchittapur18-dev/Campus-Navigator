@@ -1299,6 +1299,10 @@ def build_app() -> gr.Blocks:
                 - **Web Framework**: Gradio (responsive web UI, mobile touch controls)
                 - **Frontend Graphics**: Responsive Vector SVG (0ms server latency, crisp mobile rendering)
 
+                #### 🌐 Live Deployment & Project Links
+                - **Hugging Face Spaces Live Demo**: [https://huggingface.co/spaces/nagarajchittapur/campus-navigator](https://huggingface.co/spaces/nagarajchittapur/campus-navigator)
+                - **GitHub Repository**: [https://github.com/nagarajchittapur18-dev/Campus-Navigator-RL-](https://github.com/nagarajchittapur18-dev/Campus-Navigator-RL-)
+
                 #### Current Implementation vs. Future Scope
                 - **Current Implementation**: Deterministic simulated $10 \times 10$ university campus gridworld with discrete state-action spaces, multiple landmarks, obstacle collisions, and multi-objective reward shaping.
                 - **Future Scope**: Real-world campus GPS coordinates, dynamic pedestrian crowd sensing, continuous action spaces via Deep Reinforcement Learning (DQN / PPO), and 3D simulation.
