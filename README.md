@@ -3,8 +3,7 @@ title: Campus Navigator Q Learning
 emoji: 🎓
 colorFrom: blue
 colorTo: indigo
-sdk: gradio
-app_file: app.py
+sdk: static
 pinned: false
 license: mit
 ---
