@@ -54,6 +54,7 @@ def run_master_test_suite() -> bool:
         ("EXPERIMENTS", "test_experiments.py", "500/1000/2000 ep benchmarks, metric calculation, CSV & plots"),
         ("REWARD-EXP",  "test_reward_experiments.py", "Profiles A/B/C, reward engineering, safety metrics, CSV & plots"),
         ("FINAL-EVAL",  "test_final_evaluation.py", "Phase 22 final report JSON/CSV, actual metrics verification"),
+        ("WEB-APP",     "test_web_app.py",          "Gradio web interface, session state, SVG & D-pad"),
     ]
 
     total_tests = 0

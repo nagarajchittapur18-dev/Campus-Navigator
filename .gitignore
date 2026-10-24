@@ -15,6 +15,7 @@ scratch/
 tmp/
 *.tmp
 *.log
+models/web_trained_q_table.npy
 
 # Operating System Files
 .DS_Store

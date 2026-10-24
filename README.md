@@ -1,3 +1,15 @@
+---
+title: Campus Navigator Q Learning
+emoji: 🎓
+colorFrom: blue
+colorTo: indigo
+sdk: gradio
+sdk_version: 6.30.0
+app_file: app.py
+pinned: false
+license: mit
+---
+
 # 1. Project Title
 
 # Campus Navigator: An Intelligent Path-Finding Game Using Q-Learning
@@ -8,10 +20,11 @@
 [![Python Version](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Pygame](https://img.shields.io/badge/GUI-Pygame%202.6.1-orange.svg)](https://www.pygame.org/)
+[![Gradio](https://img.shields.io/badge/Web-Gradio%206.x-ff7c00.svg)](https://gradio.app/)
 [![NumPy](https://img.shields.io/badge/Computation-NumPy%201.26.4-blue.svg)](https://numpy.org/)
 [![Matplotlib](https://img.shields.io/badge/Visualization-Matplotlib%203.10.9-red.svg)](https://matplotlib.org/)
 [![Pandas](https://img.shields.io/badge/Data-Pandas%202.3.3-darkblue.svg)](https://pandas.pydata.org/)
-[![Tests Passing](https://img.shields.io/badge/tests-75%2F75%20passing%20(100%25)-brightgreen.svg)](tests/)
+[![Tests Passing](https://img.shields.io/badge/tests-86%2F86%20passing%20(100%25)-brightgreen.svg)](tests/)
 
 ---
 
@@ -115,16 +128,22 @@ Campus Navigator is engineered according to the **Model-View-Controller (MVC)** 
 
 ```mermaid
 flowchart TD
-    subgraph CoreEngine ["Model: Core RL Engine (Zero Pygame Dependencies)"]
+    subgraph CoreEngine ["Model: Shared RL Core Engine (Zero UI Dependencies)"]
         Env["CampusEnvironment<br/>(Gridworld MDP, Bounds, Collisions)"]
         Agent["QLearningAgent<br/>(Q-Table / Multi-Goal Tensor, Bellman)"]
         Config["Configuration System<br/>(config.py / config.json)"]
     end
 
-    subgraph Presentation ["View & Controller: 2D Presentation Layer"]
+    subgraph Presentation ["Desktop Interface: Pygame Presentation Layer"]
         Game["CampusGame<br/>(Finite State Machine & Event Loop)"]
         Renderer["CampusRenderer<br/>(Procedural Drawing, HUD, Rulers)"]
         Menu["CampusMenu<br/>(Interactive Screens, Modals, Results)"]
+    end
+
+    subgraph WebInterface ["Web Interface: Gradio Browser & Mobile Layer"]
+        WebApp["web/app.py & app.py<br/>(Responsive Tabs, Touch D-Pad, Hugging Face)"]
+        WebSVG["render_campus_svg<br/>(Vector SVG Grid, 0ms latency)"]
+        WebState["Session-Isolated State<br/>(gr.State Multi-User Safe)"]
     end
 
     subgraph Pipelines ["Execution & Experimentation Pipelines"]
@@ -149,14 +168,20 @@ flowchart TD
     Env --> Game
     Game --> Renderer
     Game --> Menu
+    Env --> WebApp
+    Agent --> WebApp
+    WebApp --> WebSVG
+    WebApp --> WebState
     Pipelines --> Env
     Pipelines --> Agent
     Pipelines --> Storage
 ```
 
 ### Architectural Highlights
-- **Headless RL Core**: The RL environment and agent have zero dependencies on Pygame. Training, evaluation, and experiments run in high-speed pure Python/NumPy.
-- **Finite State Machine**: The GUI transitions cleanly between states: `STATE_MENU`, `STATE_TRAINING`, `STATE_PLAYING`, `STATE_WATCH_AI`, `STATE_RESULTS`, `STATE_HOW_RL_WORKS`, `STATE_SETTINGS`, and `STATE_ROUTE_SELECT`.
+- **Dual Presentation Interfaces**: Both the desktop Pygame application and the browser-based Gradio web application interact with the exact same underlying RL components without duplicating algorithms.
+- **Headless RL Core**: The RL environment and agent have zero dependencies on Pygame or web servers. Training, evaluation, and experiments run in high-speed pure Python/NumPy.
+- **Session-Isolated Multi-User Web Safety**: Each browser tab maintains an isolated `CampusEnvironment` instance via Gradio's `gr.State`, allowing multiple users on mobile or desktop to play simultaneously without interfering with one another.
+- **Finite State Machine**: The desktop GUI transitions cleanly between states: `STATE_MENU`, `STATE_TRAINING`, `STATE_PLAYING`, `STATE_WATCH_AI`, `STATE_RESULTS`, `STATE_HOW_RL_WORKS`, `STATE_SETTINGS`, and `STATE_ROUTE_SELECT`.
 - **Fault Tolerance & Centralized Logging**: Runtime anomalies are caught and logged in [`logs/campus_navigator.log`](logs/campus_navigator.log) while user-friendly fallback screens prevent crashes.
 
 For comprehensive architectural specifications, see [`docs/architecture.md`](docs/architecture.md).
@@ -169,11 +194,12 @@ For comprehensive architectural specifications, see [`docs/architecture.md`](doc
 |---|---|---|---|
 | **Runtime Language** | Python | 3.8 – 3.12 | Core execution environment |
 | **Numerical Computing** | NumPy | 1.26.4 | Vectorized Q-tables, multi-goal tensors, array math |
-| **GUI & Game Engine** | Pygame | 2.6.1 | 2D procedural rendering, event handling, animations |
+| **Desktop GUI Engine** | Pygame | 2.6.1 | 2D procedural rendering, event handling, animations |
+| **Web & Mobile Interface** | Gradio | 6.x / 4.x+ | Responsive web app, touch controls, Hugging Face deployment |
 | **Data Analysis** | Pandas | 2.3.3 | Rolling metrics, experiment logging, CSV manipulation |
 | **Scientific Plotting** | Matplotlib | 3.10.9 | High-resolution convergence graphs and route plots |
 | **Serialization** | Python `json` & `csv` | Standard Library | Hyperparameters, summaries, and episode datasets |
-| **Testing Engine** | Python `unittest` | Standard Library | 75 unit, regression, and integration tests |
+| **Testing Engine** | Python `unittest` | Standard Library | 86 unit, regression, integration, and web tests |
 | **Logging Subsystem** | Python `logging` | Standard Library | Centralized runtime error tracing and audit logs |
 
 ---
@@ -269,10 +295,23 @@ python main.py --report
 *Outputs: `results/final_report.json` and `results/final_results.csv`.*
 
 ### 8. Automated Test Suite Execution (Phase 19)
-Execute the complete test suite across all 11 test modules:
+Execute the complete test suite across all 12 test modules (86 tests):
 ```bash
 python run_all_tests.py
 ```
+Or run the web application unit tests specifically:
+```bash
+python tests/test_web_app.py
+```
+
+### 9. Web Application & Mobile Touch Interface (Gradio)
+Launch the browser-based, touch-friendly web deployment:
+```bash
+python web/app.py
+# Or using the root entry point:
+python app.py
+```
+Open `http://localhost:7860` in any web browser, or connect from an Android phone or iPhone on the same Wi-Fi network at `http://<YOUR_LOCAL_IP>:7860`.
 
 ---
 
@@ -304,6 +343,82 @@ The desktop application includes 8 distinct operational modes accessible via key
 8. **Mode 8: Settings & Configuration**: Full GUI configuration tool for adjusting grid size, learning rate, discount factor, and epsilon decay with strict validation guardrails.
 
 For complete control mappings, see [`docs/user_manual.md`](docs/user_manual.md).
+
+---
+
+## 11B. Web Application & Mobile Deployment (Hugging Face Spaces)
+
+In addition to the desktop Pygame interface, Campus Navigator features a **browser-based web deployment** built with **Gradio** and **vector SVG graphics**. It allows professors, students, and evaluators to access the complete Reinforcement Learning simulation from **Android phones, iPhones, iPads, Windows, and Mac laptops** via a public HTTPS URL.
+
+### Web Architecture & Highlights
+- **Single Source of Truth**: The web application imports and reuses the exact same `CampusEnvironment`, `QLearningAgent`, and Bellman TD equations from the shared RL core without algorithm duplication.
+- **Session-Isolated Multi-User State**: Multiple users can navigate and train independently without cross-session data corruption via Gradio's `gr.State`.
+- **Zero-Latency Vector SVG Grid**: Renders a crisp, responsive $10 \times 10$ campus grid that automatically adapts to phone screens ($360\text{px} - 440\text{px}$) with zero horizontal scrolling.
+- **Touch-First Controls**: Large, finger-friendly directional D-pad buttons (`[UP]`, `[DOWN]`, `[LEFT]`, `[RIGHT]`) engineered specifically for mobile touchscreens.
+
+### Web Interface Sections
+1. **🏠 Home**: Executive academic summary of the Markov Decision Process formulation, specifications table, and architecture overview.
+2. **🎮 Play Game**: Interactive human path-finding with destination selection, live reward telemetry, collision detection, and victory celebration.
+3. **🤖 Watch AI**: Autonomous demonstration under pure exploitation ($\epsilon = 0.0$). Features a live **$Q(s, a)$ Values Inspector Table** revealing the highest expected return across all 4 actions for the current state.
+4. **🏋️ Train AI**: Interactive training engine allowing users to configure episodes ($50 - 1500$), learning rate ($\alpha$), discount factor ($\gamma$), and $\epsilon$-decay. Generates real Matplotlib convergence curves and provides a downloadable `.npy` model file.
+5. **📊 Results**: Dynamic display of empirical project benchmarks, KPIs, summary tables, and high-resolution training charts.
+6. **📚 Learn RL**: Comprehensive viva preparation guide detailing the Bellman equation, parameter breakdowns, and exploration-exploitation trade-offs rendered in mathematical KaTeX.
+
+### Step-by-Step Hugging Face Spaces Deployment Guide
+
+To deploy the web application to a public HTTPS URL accessible on any phone or laptop:
+
+1. **Create a Free Account on Hugging Face**:
+   Navigate to [huggingface.co](https://huggingface.co) and sign in or create an account.
+
+2. **Create a New Space**:
+   - Go to [huggingface.co/new-space](https://huggingface.co/new-space).
+   - Enter **Space Name**: `campus-navigator` (or your preferred name).
+   - Select **Space SDK**: **Gradio**.
+   - Select **Space Hardware**: Free CPU basic (2 vCPU, 16GB RAM is more than enough).
+   - Select **Visibility**: **Public**.
+   - Click **Create Space**.
+
+3. **Upload / Push Project Files**:
+   Clone the newly created Space or upload the required project files:
+   ```text
+   campus-navigator/
+   ├── app.py                      # Root Hugging Face entry point
+   ├── web/
+   │   ├── __init__.py
+   │   └── app.py                  # Full Gradio application
+   ├── environment/
+   │   ├── __init__.py
+   │   └── campus_env.py           # 10x10 Campus Gridworld MDP
+   ├── agent/
+   │   ├── __init__.py
+   │   └── q_learning.py           # Tabular Q-Learning Agent
+   ├── models/
+   │   ├── q_table.npy             # Trained baseline model
+   │   └── q_table_multi.npy       # Trained multi-destination tensor
+   ├── training/
+   │   ├── __init__.py
+   │   └── train.py                # Experiential training pipeline
+   ├── results/                    # Empirical results and publication plots
+   ├── config.py                   # Central configuration
+   └── requirements.txt            # Python dependencies (gradio, numpy, pandas, matplotlib)
+   ```
+
+4. **Automatic Build & Launch**:
+   - Hugging Face automatically detects `requirements.txt` and executes `app.py`.
+   - The build process completes in approximately 1–2 minutes.
+   - Once the status pill turns green (**Running**), your Space is live!
+
+5. **Access and Share Public HTTPS URL**:
+   - The Space URL will be: `https://huggingface.co/spaces/<your-username>/campus-navigator`.
+   - Share this HTTPS link with evaluators or professors.
+   - It opens smoothly in Safari on iPhone, Chrome on Android, and all desktop browsers.
+
+### Mobile Phone Usage Guide
+- **iPhone / iOS**: Open Safari or Chrome, enter the HTTPS URL. For full-screen app experience, tap **Share** > **Add to Home Screen**.
+- **Android**: Open Chrome or Firefox, enter the HTTPS URL. Tap the three dots menu > **Install app** or **Add to Home screen**.
+- **Touch Navigation**: Tap the large `[UP]`, `[DOWN]`, `[LEFT]`, `[RIGHT]` buttons to move the student agent cell by cell.
+- **Orientation**: Supports both portrait mode (stacked layout) and landscape mode. No horizontal scrolling required.
 
 ---
 
@@ -574,12 +689,17 @@ $$\begin{aligned}
 ```text
 Campus Navigator/
 │
-├── main.py                         # Application CLI & GUI launcher
+├── main.py                         # Application CLI & Pygame GUI launcher
+├── app.py                          # Hugging Face Spaces root web entry point
 ├── config.py                       # Global layout, landmark, and default hyperparameters
 ├── config.json                     # Dynamic runtime settings persisted from UI
-├── requirements.txt                # Production dependencies (pygame, numpy, matplotlib, pandas)
-├── run_all_tests.py                # Master automated test runner (11 suites, 75 tests)
+├── requirements.txt                # Production dependencies (pygame, gradio, numpy, matplotlib, pandas)
+├── run_all_tests.py                # Master automated test runner (12 suites, 86 tests)
 ├── README.md                       # Master comprehensive documentation
+│
+├── web/                            # Web & Mobile Deployment Layer (Gradio)
+│   ├── __init__.py
+│   └── app.py                      # Responsive Gradio application (6 tabs, mobile touch D-pad)
 │
 ├── environment/                    # MDP Model Layer
 │   ├── __init__.py
@@ -653,7 +773,8 @@ Campus Navigator/
 │   ├── test_phase17_ui.py          # Coordinate rulers, HUD status, animations
 │   ├── test_experiments.py         # Horizon benchmarking framework verification
 │   ├── test_reward_experiments.py  # Reward profile framework verification
-│   └── test_final_evaluation.py    # Phase 22 final report JSON/CSV validation
+│   ├── test_final_evaluation.py    # Phase 22 final report JSON/CSV validation
+│   └── test_web_app.py             # Gradio web app, session state, SVG & D-pad tests
 │
 └── docs/                           # In-Depth Theoretical & Technical Documentation
     ├── architecture.md             # System architecture, MVC decoupling, state machine
