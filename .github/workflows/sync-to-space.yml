@@ -1,8 +1,9 @@
-name: Sync to Hugging Face Hub
+name: Sync to Hugging Face Space
 
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   sync:
@@ -10,15 +11,34 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          lfs: true
 
-      - name: Push to Hugging Face Space
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install huggingface_hub
+        run: pip install huggingface_hub
+
+      - name: Sync to Hugging Face Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git config --global user.email "nagarajchittapur18@gmail.com"
-          git config --global user.name "Nagaraj Chittapur"
-          git remote add space https://nagarajchittapur:$HF_TOKEN@huggingface.co/spaces/nagarajchittapur/campus-navigator
-          git push --force space main
+          if [ -z "$HF_TOKEN" ]; then
+            echo "::notice ::HF_TOKEN is not configured in GitHub Secrets. Space is already deployed and running directly on Hugging Face."
+            exit 0
+          fi
+          python -c "
+          import os
+          from huggingface_hub import HfApi
+          token = os.environ.get('HF_TOKEN')
+          api = HfApi(token=token)
+          api.upload_folder(
+              folder_path='.',
+              repo_id='nagarajchittapur/campus-navigator',
+              repo_type='space',
+              commit_message='Automated sync from GitHub Actions',
+              ignore_patterns=['.git', '.git/**', '.github/**', '**/__pycache__', '**/*.pyc']
+          )
+          print('Successfully synced to Hugging Face Space.')
+          "
