@@ -19,9 +19,10 @@ from web.app import build_app, KEYBOARD_JS
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 7860))
-    print(f"Starting Campus Navigator Web App on port {port}...", flush=True)
+    share = os.environ.get("SHARE", "False").lower() in ("true", "1") or "--share" in sys.argv
+    print(f"Starting Campus Navigator Web App on port {port} (share={share})...", flush=True)
     demo = build_app()
     try:
-        demo.launch(server_name="0.0.0.0", server_port=port, head=KEYBOARD_JS)
+        demo.launch(server_name="0.0.0.0", server_port=port, head=KEYBOARD_JS, share=share)
     except TypeError:
-        demo.launch(server_name="0.0.0.0", server_port=port)
+        demo.launch(server_name="0.0.0.0", server_port=port, share=share)
